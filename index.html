@@ -1121,20 +1121,46 @@ let BACKEND_URL = HARDCODED_URL || localStorage.getItem('spendbot_url') || '';
 // CONSTANTS
 // ============================================================
 const CAT_COLORS = {
-  'Groceries':     '#4ecdc4',
-  'Transportation':'#74b9ff',
-  'Housing':       '#e8b86d',
-  'Utilities':     '#ff9f43',
-  'Subscriptions': '#c3aef7',
-  'Lifestyle':     '#fd79a8',
-  'Financial':     '#ff6b6b',
-  'Home Care':     '#95e1a3',
-  'Household':     '#a29bfe',
-  'Tissue':        '#fdcb6e',
-  'Income':        '#00b894',
-  'Other':         '#636e72',
+  // Food - raw ingredients
+  'Eggs':              '#f5c518',
+  'Chicken':           '#fa8c16',
+  'Meat & Seafood':    '#cf1322',
+  'Vegetables':        '#52c41a',
+  'Fruits':            '#eb2f96',
+  'Dairy':             '#69c0ff',
+  'Rice & Staples':    '#d4b106',
+  'Bread & Bakery':    '#ad6800',
+  'Snacks':            '#ff7a45',
+  'Instant Noodles':   '#ffc53d',
+  'Drinks':            '#1890ff',
+  'Condiments':        '#722ed1',
+  'Asian Ingredients': '#c41d7f',
+  // Dining
+  'Dining Out':        '#f5222d',
+  // Home
+  'Personal Care':     '#13c2c2',
+  'Baby & Kids':       '#ffadd2',
+  'Home Supplies':     '#85a5ff',
+  'Kitchen Equipment': '#5cdbd3',
+  'Home Equipment':    '#b5f5ec',
+  // Fixed costs
+  'Housing':           '#2f54eb',
+  'Utilities':         '#08979c',
+  'Subscriptions':     '#531dab',
+  'Transportation':    '#389e0d',
+  'Financial':         '#d46b08',
+  // Lifestyle
+  'Entertainment':     '#9254de',
+  'Clothing':          '#f759ab',
+  'Gifts & Flowers':   '#ff4d4f',
+  'Education':         '#0050b3',
+  // Other
+  'Medical':           '#a8071a',
+  'Other':             '#8c8c8c',
+  // Special
+  'Income':            '#00b894',
 };
-const EXEMPT_CATS    = ['Housing', 'Utilities', 'Subscriptions', 'Financial'];
+const EXEMPT_CATS    = ['Housing', 'Utilities', 'Subscriptions', 'Financial', 'Medical'];
 const TARGET_DISC    = 500;
 const DEFAULT_INCOME = 4032.40;
 const AUTO_REFRESH   = 30000;
