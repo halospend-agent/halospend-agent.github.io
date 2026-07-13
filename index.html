@@ -1103,6 +1103,8 @@ function renderTrendChart() {
   <span id="statusTxt">Connecting...</span>
   <span id="statusTime" style="color:#636e72;"></span>
   <button onclick="changeUrl()" style="background:none;border:none;color:#8892a4;cursor:pointer;font-size:10px;padding:0 0 0 4px;" title="Change Railway URL">⚙</button>
+  <button onclick="triggerImport()" style="background:none;border:none;color:#8892a4;cursor:pointer;font-size:10px;padding:0 0 0 8px;" title="Import CSV">⬆ Import CSV</button>
+  <input type="file" id="importFileInput" accept=".csv" style="display:none" onchange="importCSV(this)">
 </div>
 
 <div class="toast" id="toast"></div>
@@ -2013,6 +2015,67 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load data (shows modal if no URL saved)
   loadData();
 });
+
+// ============================================================
+// CSV IMPORT
+// ============================================================
+function triggerImport() {
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('importFileInput').click();
+}
+
+async function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const text = await file.text();
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  const amountIdx  = headers.findIndex(h => h.toLowerCase().startsWith('amount'));
+  const dateIdx    = headers.findIndex(h => h.toLowerCase() === 'date');
+  const typeIdx    = headers.findIndex(h => h.toLowerCase() === 'type');
+  const catIdx     = headers.findIndex(h => h.toLowerCase() === 'category');
+  const notesIdx   = headers.findIndex(h => h.toLowerCase() === 'notes');
+  const personIdx  = headers.findIndex(h => h.toLowerCase() === 'person');
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+    if (!cols[dateIdx] || !cols[catIdx]) continue;
+    rows.push({
+      date:     cols[dateIdx],
+      type:     cols[typeIdx]   || 'Expense',
+      category: cols[catIdx],
+      amount:   cols[amountIdx] || '0',
+      notes:    cols[notesIdx]  || '',
+      person:   cols[personIdx] || 'You',
+    });
+  }
+
+  const BATCH = 500;
+  let total = 0;
+  showToast(`Importing ${rows.length} rows...`, 60000);
+
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH);
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows: batch }),
+      });
+      const data = await r.json();
+      total += data.inserted || 0;
+      showToast(`Imported ${total} / ${rows.length}...`, 60000);
+    } catch (e) {
+      showToast('Import error: ' + e.message);
+      return;
+    }
+  }
+
+  showToast(`✅ Import selesai! ${total} transaksi berhasil dimasukkan.`);
+  setTimeout(() => loadData(), 1500);
+}
 </script>
 </body>
 </html>
