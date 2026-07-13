@@ -2024,29 +2024,50 @@ function triggerImport() {
   document.getElementById('importFileInput').click();
 }
 
+// Proper CSV parser — handles quoted fields with commas inside
+function parseCSVLine(line) {
+  const cols = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+    else { cur += ch; }
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+
+// Convert DD/MM/YYYY → YYYY-MM-DD so JS parses it correctly
+function fixDate(str) {
+  const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : str;
+}
+
 async function importCSV(input) {
   const file = input.files[0];
   if (!file) return;
 
   const text = await file.text();
   const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-  const amountIdx  = headers.findIndex(h => h.toLowerCase().startsWith('amount'));
-  const dateIdx    = headers.findIndex(h => h.toLowerCase() === 'date');
-  const typeIdx    = headers.findIndex(h => h.toLowerCase() === 'type');
-  const catIdx     = headers.findIndex(h => h.toLowerCase() === 'category');
-  const notesIdx   = headers.findIndex(h => h.toLowerCase() === 'notes');
-  const personIdx  = headers.findIndex(h => h.toLowerCase() === 'person');
+  const headers = parseCSVLine(lines[0]).map(h => h.replace(/"/g, '').toLowerCase());
+  const dateIdx   = headers.findIndex(h => h === 'date');
+  const typeIdx   = headers.findIndex(h => h === 'type');
+  const catIdx    = headers.findIndex(h => h === 'category');
+  const amtIdx    = headers.findIndex(h => h.startsWith('amount'));
+  const notesIdx  = headers.findIndex(h => h === 'notes');
+  const personIdx = headers.findIndex(h => h === 'person');
 
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+    if (!lines[i].trim()) continue;
+    const cols = parseCSVLine(lines[i]);
     if (!cols[dateIdx] || !cols[catIdx]) continue;
     rows.push({
-      date:     cols[dateIdx],
+      date:     fixDate(cols[dateIdx]),
       type:     cols[typeIdx]   || 'Expense',
       category: cols[catIdx],
-      amount:   cols[amountIdx] || '0',
+      amount:   cols[amtIdx]   || '0',
       notes:    cols[notesIdx]  || '',
       person:   cols[personIdx] || 'You',
     });
